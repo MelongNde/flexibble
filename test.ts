@@ -8,7 +8,7 @@ const User = g.model('User', {
   avatarUrl: g.url(),
   description: g.string().optional(),
   githubUrl: g.url().optional(),
-  linkedinUrl: g.url().optional(),
+  linkedInUrl: g.url().optional(),
   project: g.relation(() => Project).list().optional()
 }).auth((rules) => {
   rules.public().read()
@@ -31,12 +31,4 @@ const Project = g.model('Project', {
 const jwt = auth.JWT({
   issuer: 'grafbase',
   secret: g.env('NEXTAUTH_SECRET')
-})
-
-export default config({
-  schema: g,
-  auth: {
-    providers: [jwt],
-    rules: (rules) => rules.private()
-  }
 })
