@@ -7,12 +7,15 @@ import FormField from "./FormField"
 import { categoryFilters } from "@/constants"
 import CustomMenu from "./CustomMenu"
 import Button from "./Button"
+import { createNewProject, fetchToken } from "@/lib/actions"
+import { useRouter } from 'next/navigation'
 
 type Props = {
     type: string,
     session: SessionInterface
 }
 const ProjectForm = ({ type, session }: Props) => {
+    const router = useRouter()
 
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -25,8 +28,26 @@ const ProjectForm = ({ type, session }: Props) => {
         category: ''
     })
 
-    const handleFormSubmit = (e: React.FormEvent) => { 
-        
+    const handleFormSubmit = async (e: React.FormEvent) => { 
+        e.preventDefault()
+
+        setIsSubmitting(true)
+
+        const token = await fetchToken()
+
+        router.push('/')
+
+        try {
+            // create project
+            if(type==='create') {
+                await createNewProject(form, session?.user?.id, token)
+            }
+
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
@@ -55,71 +76,65 @@ const ProjectForm = ({ type, session }: Props) => {
 
 
     return (  
-        <form 
+        <form
             onSubmit={handleFormSubmit}
-            className="flexStart form"
-        >
+            className="flexStart form">
             <div className="flexStart form_image-container">
                 <label htmlFor="poster" className="flexCenter form_image-label">
-                    {
-                        !form.image && 'choose a poster for your project'
-                    }
+                    {!form.image && 'Choose a poster for your project'}
                 </label>
-                <input 
-                    type="file"
+                <input
                     id="image"
-                    accept="image/*"
-                    required={ type === 'create' }
+                    type="file"
+                    accept='image/*'
+                    required={type === "create" ? true : false}
                     className="form_image-input"
-                    onChange={handleChangeImage}
+                    onChange={(e) => handleChangeImage(e)}
                 />
                 {form.image && (
                     <Image
                         src={form?.image}
-                        className="sm:p-10 object-contain z-20"
-                        alt="Project poster"
+                        className="sm:p-10 object-contain z-20" alt="image"
                         fill
-                    >
-
-                    </Image>
+                    />
                 )}
             </div>
 
-            <FormField 
-                title='Title'
+            <FormField
+                title="Title"
                 state={form.title}
-                placeholder='Title'
                 isTextArea={false}
-                setState= {(value) => handleStateChange('title', value)}
+                placeholder="Flexibble"
+                setState={(value) => handleStateChange('title', value)}
             />
 
-            <FormField 
+            <FormField
                 title='Description'
-                state={form.title}
-                placeholder='Showcase and discover remarkablendeveloper projects.'
-                isTextArea={false}
-                setState= {(value) => handleStateChange('description', value)}
+                state={form.description}
+                placeholder="Showcase and discover remarkable developer projects."
+                isTextArea
+                setState={(value) => handleStateChange('description', value)}
             />
-            <FormField 
+
+            <FormField
                 type="url"
-                title='Website URL'
+                title="Website URL"
                 state={form.liveSiteUrl}
-                placeholder='www.yourporfolio.com'
                 isTextArea={false}
-                setState= {(value) => handleStateChange('liveSiteUrl', value)}
+                placeholder="https://jsmastery.pro"
+                setState={(value) => handleStateChange('liveSiteUrl', value)}
             />
-            <FormField 
+
+            <FormField
                 type="url"
-                title='Website URL'
+                title="GitHub URL"
                 state={form.githubUrl}
-                placeholder='www.github.com/simon-melong'
+                placeholder="https://github.com/adrianhajdin"
                 isTextArea={false}
-                setState= {(value) => handleStateChange('githubUrl', value)}
+                setState={(value) => handleStateChange('githubUrl', value)}
             />
 
-            {/* Custom Input for the category */}
-
-            <CustomMenu 
+            <CustomMenu
                 title="Category"
                 state={form.category}
                 filters={categoryFilters}
@@ -128,14 +143,9 @@ const ProjectForm = ({ type, session }: Props) => {
 
             <div className="flexStart w-full">
                 <Button
-                    title={ 
-                        isSubmitting
-                            ? `${type === 'create' ? 'Creating' :
-                            'Editing'}`
-                            : `${type === 'create' ? 'Create' : 'Edit'}`
-                        }
+                    title={isSubmitting ? `${type === "create" ? "Creating" : "Editing"}` : `${type === "create" ? "Create" : "Edit"}`}
                     type="submit"
-                    leftIcon={isSubmitting ? "" : '/plus.svg'}
+                    leftIcon={isSubmitting ? "" : "/plus.svg"}
                     isSubmitting={isSubmitting}
                 />
             </div>
